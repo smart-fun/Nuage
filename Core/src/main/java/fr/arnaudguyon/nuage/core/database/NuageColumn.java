@@ -1,8 +1,10 @@
 package fr.arnaudguyon.nuage.core.database;
 
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 public class NuageColumn {
+
+    public static final String COLUMN_UUID = "_uuid";
     private final @NonNull String name;
     private final @NonNull Type type;
 

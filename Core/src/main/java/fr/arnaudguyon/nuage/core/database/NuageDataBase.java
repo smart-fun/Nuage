@@ -2,7 +2,8 @@ package fr.arnaudguyon.nuage.core.database;
 
 import android.content.Context;
 
-    import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class NuageDataBase {
 
@@ -12,8 +13,20 @@ public class NuageDataBase {
         helper = new NuageSQLiteHelper(context, baseName, version);
     }
 
-    public NuageTable table(@NonNull String tableName) {
-        return new NuageTable(tableName, helper.getWritableDatabase());
+    public boolean tableExists(@NonNull String tableName) {
+        return NuageTable.exists(tableName, helper.getReadableDatabase());
+    }
+
+    public @Nullable NuageTable getTable(@NonNull String tableName) {
+        return NuageTable.get(tableName, helper.getWritableDatabase());
+    }
+
+    public @Nullable NuageTable createTable(@NonNull String tableName) {
+        if (!tableExists(tableName)) {
+            return NuageTable.create(tableName, helper.getWritableDatabase());
+        } else {
+            return null;
+        }
     }
 
 }
