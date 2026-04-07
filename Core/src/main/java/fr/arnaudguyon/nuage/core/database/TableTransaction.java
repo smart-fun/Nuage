@@ -29,6 +29,10 @@ abstract class TableTransaction {
             db.execSQL(sql);
         }
 
+        @NonNull
+        public NuageColumn getColumn() {
+            return column;
+        }
     }
 
     static class InsertRecord extends TableTransaction {

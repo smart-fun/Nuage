@@ -26,7 +26,7 @@ public class NuageRecord {
         this.uuid = UUID.randomUUID().toString();
     }
 
-    public NuageRecord(@NonNull Cursor cursor) {
+    public NuageRecord(@NonNull Cursor cursor, @NonNull Map<String, NuageColumn.Type> columnTypes) {
         int uuidIndex = cursor.getColumnIndex(COLUMN_UUID);
         if (uuidIndex != -1) {
             this.uuid = cursor.getString(uuidIndex);
@@ -34,28 +34,32 @@ public class NuageRecord {
             this.uuid = UUID.randomUUID().toString();
         }
 
-        // TODO: handle types according to schema (ie JSON BOOLEAN vs SQL INTEGER)
         String[] columnNames = cursor.getColumnNames();
         for (String name : columnNames) {
             if (name.equals(COLUMN_UUID)) continue;
 
             int index = cursor.getColumnIndex(name);
-            switch (cursor.getType(index)) {
-                case Cursor.FIELD_TYPE_STRING:
-                    put(name, cursor.getString(index));
-                    break;
-                case Cursor.FIELD_TYPE_INTEGER:
-                    put(name, cursor.getLong(index));
-                    break;
-                case Cursor.FIELD_TYPE_FLOAT:
-                    put(name, cursor.getDouble(index));
-                    break;
-                case Cursor.FIELD_TYPE_NULL:
-                    values.put(name, null);
-                    break;
-                case Cursor.FIELD_TYPE_BLOB:
-                    // TODO: not handled yet
-                    break;
+            int cursorType = cursor.getType(index);
+
+            // Handle NULL values first
+            if (cursorType == Cursor.FIELD_TYPE_NULL) {
+                values.put(name, null);
+                continue;
+            }
+
+            // Get the expected type from your cache
+            NuageColumn.Type expectedType = columnTypes.get(name);
+
+            if (expectedType == NuageColumn.Type.BOOLEAN) {
+                // If it's a BOOLEAN in Nuage, SQLite stored it as INTEGER (0 or 1)
+                put(name, cursor.getLong(index) != 0);
+            } else {
+                // Standard SQL mapping
+                switch (cursorType) {
+                    case Cursor.FIELD_TYPE_STRING -> put(name, cursor.getString(index));
+                    case Cursor.FIELD_TYPE_INTEGER -> put(name, cursor.getLong(index));
+                    case Cursor.FIELD_TYPE_FLOAT -> put(name, cursor.getDouble(index));
+                }
             }
         }
     }
@@ -97,14 +101,14 @@ public class NuageRecord {
             Object value = values.get(key);
             if (value == null) {
                 contentValues.putNull(key);
-            } else if (value instanceof String) {
-                contentValues.put(key, (String) value);
-            } else if (value instanceof Long) {
-                contentValues.put(key, (Long) value);
-            } else if (value instanceof Double) {
-                contentValues.put(key, (Double) value);
-            } else if (value instanceof Boolean) {
-                contentValues.put(key, (Boolean) value);
+            } else if (value instanceof String text) {
+                contentValues.put(key, text);
+            } else if (value instanceof Long number) {
+                contentValues.put(key, number);
+            } else if (value instanceof Double number) {
+                contentValues.put(key, number);
+            } else if (value instanceof Boolean bool) {
+                contentValues.put(key, bool);
             }
         }
         return contentValues;

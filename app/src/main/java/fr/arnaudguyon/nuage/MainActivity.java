@@ -34,10 +34,12 @@ public class MainActivity extends AppCompatActivity {
             if (clients != null) {
                 clients.addColumn("firstName", NuageColumn.Type.STRING);
                 clients.addColumn("lastName", NuageColumn.Type.STRING);
+                clients.addColumn("isCompany", NuageColumn.Type.BOOLEAN);
 
                 NuageRecord record = new NuageRecord()
                         .put("firstName", "Jean")
-                        .put("lastName", "Bon");
+                        .put("lastName", "Bon")
+                        .put("isCompany", false);
 
                 clients.addRecord(record);
 

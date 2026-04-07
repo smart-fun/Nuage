@@ -8,18 +8,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class NuageTable {
 
     private final @NonNull String tableName;
     private final @NonNull SQLiteDatabase db;
-
+    private final Map<String, NuageColumn.Type> columnTypes = new HashMap<>();
     private final List<TableTransaction> transactions = new ArrayList<>();
 
     NuageTable(@NonNull String tableName, @NonNull SQLiteDatabase db) {
         this.tableName = tableName;
         this.db = db;
+        initColumnTypes();
     }
 
     static boolean exists(@NonNull String tableName, @NonNull SQLiteDatabase db) {
@@ -57,7 +60,7 @@ public class NuageTable {
         String query = "SELECT * FROM " + tableName + " WHERE " + NuageColumn.COLUMN_UUID + " = ?";
         try (Cursor cursor = db.rawQuery(query, new String[]{uuid})) {
             if (cursor.moveToFirst()) {
-                return new NuageRecord(cursor);
+                return new NuageRecord(cursor, columnTypes);
             }
         }
         return null;
@@ -72,7 +75,7 @@ public class NuageTable {
         try (Cursor cursor = db.rawQuery(query, args)) {
             if (cursor.moveToFirst()) {
                 do {
-                    results.add(new NuageRecord(cursor));
+                    results.add(new NuageRecord(cursor, columnTypes));
                 } while (cursor.moveToNext());
             }
         }
@@ -86,9 +89,12 @@ public class NuageTable {
         try {
             for (TableTransaction transaction : transactions) {
                 transaction.execute(db);
+                if (transaction instanceof TableTransaction.AddColumn transactionAddColumn) {
+                    columnTypes.put(transactionAddColumn.getColumn().getName(), transactionAddColumn.getColumn().getType());    // put type in cache
+                }
             }
             db.setTransactionSuccessful();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             success = false;
             exception = e;
         } finally {
@@ -96,6 +102,29 @@ public class NuageTable {
             transactions.clear();
             if (listener != null) {
                 listener.onApplied(success, exception);
+            }
+        }
+    }
+
+    private void initColumnTypes() {
+        columnTypes.clear();
+        try (Cursor cursor = db.rawQuery("PRAGMA table_info(" + tableName + ")", null)) {
+            if (cursor.moveToFirst()) {
+                int nameIndex = cursor.getColumnIndexOrThrow("name");
+                int typeIndex = cursor.getColumnIndexOrThrow("type");
+                do {
+                    String name = cursor.getString(nameIndex);
+                    String typeStr = cursor.getString(typeIndex);
+
+                    // Map the SQL declared type back to our Enum
+                    NuageColumn.Type type;
+                    try {
+                        type = NuageColumn.Type.valueOf(typeStr);
+                    } catch (IllegalArgumentException e) {
+                        type = NuageColumn.Type.STRING; // Defaulting to STRING
+                    }
+                    columnTypes.put(name, type);
+                } while (cursor.moveToNext());
             }
         }
     }

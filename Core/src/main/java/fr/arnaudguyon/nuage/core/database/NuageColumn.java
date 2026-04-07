@@ -29,7 +29,7 @@ public class NuageColumn {
                 case DOUBLE:
                     return "REAL";
                 case BOOLEAN:
-                    return "INTEGER";
+                    return "BOOLEAN"; // Type Affinity fallbacks to "INTEGER" but we store "BOOLEAN"
                 case BINARY:
                     return "BLOB";
                 default:
