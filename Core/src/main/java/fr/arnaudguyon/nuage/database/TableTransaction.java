@@ -1,4 +1,4 @@
-package fr.arnaudguyon.nuage.core.database;
+package fr.arnaudguyon.nuage.database;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;

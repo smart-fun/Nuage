@@ -1,6 +1,6 @@
-package fr.arnaudguyon.nuage.core.database;
+package fr.arnaudguyon.nuage.database;
 
-import static fr.arnaudguyon.nuage.core.database.NuageColumn.COLUMN_UUID;
+import static fr.arnaudguyon.nuage.database.NuageColumn.COLUMN_UUID;
 
 import android.content.ContentValues;
 import android.database.Cursor;

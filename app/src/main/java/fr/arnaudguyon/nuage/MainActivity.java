@@ -7,10 +7,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.List;
 
-import fr.arnaudguyon.nuage.core.database.NuageColumn;
-import fr.arnaudguyon.nuage.core.database.NuageDataBase;
-import fr.arnaudguyon.nuage.core.database.NuageRecord;
-import fr.arnaudguyon.nuage.core.database.NuageTable;
+import fr.arnaudguyon.nuage.database.NuageColumn;
+import fr.arnaudguyon.nuage.database.NuageDataBase;
+import fr.arnaudguyon.nuage.database.NuageRecord;
+import fr.arnaudguyon.nuage.database.NuageTable;
 
 public class MainActivity extends AppCompatActivity {
 

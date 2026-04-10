@@ -1,4 +1,4 @@
-package fr.arnaudguyon.nuage.core;
+package fr.arnaudguyon.nuage;
 
 import org.junit.Test;
 
