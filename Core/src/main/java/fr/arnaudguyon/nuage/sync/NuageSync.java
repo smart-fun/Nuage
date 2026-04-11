@@ -1,15 +1,26 @@
 package fr.arnaudguyon.nuage.sync;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.json.JSONObject;
+
+import java.util.Collection;
+
 import fr.arnaudguyon.nuage.database.NuageDataBase;
+import fr.arnaudguyon.nuage.database.NuageTable;
+import fr.arnaudguyon.nuage.json.JsonUtils;
+import fr.arnaudguyon.nuage.json.TableSerializer;
 
 public class NuageSync {
 
-    private static @Nullable NuageSync instance;
+    private static final String TAG = NuageSync.class.getSimpleName();
+
+    private static volatile @Nullable NuageSync instance;
     private final @NonNull NuageDataBase dataBase;
-    private final @NonNull SyncProvider syncProvider;
+    private final @NonNull SyncProvider.Internal syncProvider;
     private final @NonNull SyncStrategy syncStrategy;
 
     public static synchronized @NonNull NuageSync create(@NonNull NuageDataBase dataBase,
@@ -18,7 +29,11 @@ public class NuageSync {
         if (instance != null) {
             throw new IllegalStateException("NuageSync instance already exists. Use getInstance() instead.");
         }
-        instance = new NuageSync(dataBase, syncProvider, syncStrategy);
+        if (syncProvider instanceof SyncProvider.Internal internalSyncProvider) {
+            instance = new NuageSync(dataBase, internalSyncProvider, syncStrategy);
+        } else {
+            throw new IllegalArgumentException("syncProvider must implement SyncProvider.Internal");
+        }
         return instance;
     }
 
@@ -29,23 +44,33 @@ public class NuageSync {
         return instance;
     }
 
-    private NuageSync(@NonNull NuageDataBase dataBase, @NonNull SyncProvider syncProvider, @NonNull SyncStrategy syncStrategy) {
+    private NuageSync(@NonNull NuageDataBase dataBase, @NonNull SyncProvider.Internal internalSyncProvider, @NonNull SyncStrategy syncStrategy) {
         this.dataBase = dataBase;
-        this.syncProvider = syncProvider;
+        this.syncProvider = internalSyncProvider;
         this.syncStrategy = syncStrategy;
     }
 
-    void start() {
+    public void start() {
         syncProvider.start();
     }
 
-    void stop() {
+    public void stop() {
         syncProvider.stop();
     }
 
-    void syncNow() {
+    public void syncNow() {
         // get json files, database records, create new json files
         // request syncProvider to save the new files
+        Collection<NuageTable> tables = dataBase.getTables();
+        for(NuageTable table : tables) {
+            try {
+                JSONObject json = TableSerializer.serializeDefinition(table);
+                byte[] bytes = JsonUtils.toBytes(json);
+                syncProvider.upload(table.getTableName(), bytes);
+            } catch (Exception e) {
+                Log.e(TAG, "Error while saving " + table.getTableName() + " -> " + e.getMessage());
+            }
+        }
     }
 
 }

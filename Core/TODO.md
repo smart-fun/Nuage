@@ -11,6 +11,7 @@ This table will be used by Core.sync to synchronize: read the 1st record, comput
 ## nuage.json
 
 Serialization / deseralization of Record in json
+encrypt if necessary: AES-256 key computed via PBKDF2(password or passphrase + random salt). random salt is saved in clear. Key is saved in Android Keystore. Same key can be regenerated, including on iOS.
 
 ## nuage.sync
 

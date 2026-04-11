@@ -8,7 +8,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,13 +17,18 @@ public class NuageTable {
 
     private final @NonNull String tableName;
     private final @NonNull SQLiteDatabase db;
-    private final Map<String, NuageColumn.Type> columnTypes = new HashMap<>();
+    private final Map<String, NuageColumn.Type> columnTypes = new LinkedHashMap<>();
     private final List<TableTransaction> transactions = new ArrayList<>();
 
     NuageTable(@NonNull String tableName, @NonNull SQLiteDatabase db) {
         this.tableName = tableName;
         this.db = db;
         initColumnTypes();
+    }
+
+    @NonNull
+    public String getTableName() {
+        return tableName;
     }
 
     static boolean exists(@NonNull String tableName, @NonNull SQLiteDatabase db) {
@@ -127,6 +133,10 @@ public class NuageTable {
                 } while (cursor.moveToNext());
             }
         }
+    }
+
+    public Map<String, NuageColumn.Type> getColumnTypes() {
+        return Collections.unmodifiableMap(columnTypes);
     }
 
     public interface ApplyListener {

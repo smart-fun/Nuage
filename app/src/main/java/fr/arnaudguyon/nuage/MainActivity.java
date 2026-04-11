@@ -11,6 +11,10 @@ import fr.arnaudguyon.nuage.database.NuageColumn;
 import fr.arnaudguyon.nuage.database.NuageDataBase;
 import fr.arnaudguyon.nuage.database.NuageRecord;
 import fr.arnaudguyon.nuage.database.NuageTable;
+import fr.arnaudguyon.nuage.sync.FileSyncProvider;
+import fr.arnaudguyon.nuage.sync.NuageSync;
+import fr.arnaudguyon.nuage.sync.SyncProvider;
+import fr.arnaudguyon.nuage.sync.SyncStrategy;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,5 +70,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        SyncProvider provider = FileSyncProvider.create(this, "NuageApp", db.getDatabaseName());
+        NuageSync nuageSync = NuageSync.create(db, provider, SyncStrategy.ON_DEMAND);
+        nuageSync.start();
+        nuageSync.syncNow();
+        nuageSync.stop();
     }
 }
