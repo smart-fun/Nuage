@@ -4,14 +4,19 @@ import static fr.arnaudguyon.nuage.database.NuageColumn.COLUMN_UUID;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import fr.arnaudguyon.nuage.model.ColumnModel;
+import fr.arnaudguyon.nuage.model.ColumnType;
 
 /**
  * Represents a single row in a NuageTable.
@@ -19,6 +24,7 @@ import java.util.UUID;
  */
 public class NuageRecord {
 
+    private static final String TAG = NuageRecord.class.getSimpleName();
     private final @NonNull String uuid;
     private final @NonNull Map<String, Object> values = new HashMap<>();
 
@@ -26,7 +32,7 @@ public class NuageRecord {
         this.uuid = UUID.randomUUID().toString();
     }
 
-    public NuageRecord(@NonNull Cursor cursor, @NonNull Map<String, NuageColumn.Type> columnTypes) {
+    public NuageRecord(@NonNull Cursor cursor, @NonNull Map<String, ColumnModel> columnModels) {
         int uuidIndex = cursor.getColumnIndex(COLUMN_UUID);
         if (uuidIndex != -1) {
             this.uuid = cursor.getString(uuidIndex);
@@ -48,9 +54,20 @@ public class NuageRecord {
             }
 
             // Get the expected type from your cache
-            NuageColumn.Type expectedType = columnTypes.get(name);
+            ColumnModel columnModel = columnModels.get(name);
+            if (columnModel == null) {
+                Log.e(TAG, "Unknown column " + name + ", try to detect db format");
+                switch (cursorType) {
+                    case Cursor.FIELD_TYPE_STRING -> put(name, cursor.getString(index));
+                    case Cursor.FIELD_TYPE_INTEGER -> put(name, cursor.getLong(index));
+                    case Cursor.FIELD_TYPE_FLOAT -> put(name, cursor.getDouble(index));
+                    case Cursor.FIELD_TYPE_BLOB -> put(name, Arrays.toString(cursor.getBlob(index)));
+                }
+                continue;
+            }
+            ColumnType expectedType = columnModel.getType();
 
-            if (expectedType == NuageColumn.Type.BOOLEAN) {
+            if (expectedType == ColumnType.BOOLEAN) {
                 // If it's a BOOLEAN in Nuage, SQLite stored it as INTEGER (0 or 1)
                 put(name, cursor.getLong(index) != 0);
             } else {

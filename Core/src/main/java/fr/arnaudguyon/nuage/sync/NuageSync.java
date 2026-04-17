@@ -64,7 +64,7 @@ public class NuageSync {
         Collection<NuageTable> tables = dataBase.getTables();
         for(NuageTable table : tables) {
             try {
-                JSONObject json = TableSerializer.serializeDefinition(table);
+                JSONObject json = TableSerializer.serializeDefinition(table.getTableSchema());
                 byte[] bytes = JsonUtils.toBytes(json);
                 syncProvider.upload(table.getTableName(), bytes);
             } catch (Exception e) {

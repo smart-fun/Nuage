@@ -1,4 +1,4 @@
-# Nuage ☁️
+# Nuage ☁️ - WORK IN PROGRESS - DON'T USE YET -
 
 **Nuage** is a lightweight, local-first Android database library that automatically synchronizes your data with the user's personal cloud storage (Google Drive, Dropbox, etc.).
 

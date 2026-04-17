@@ -11,6 +11,7 @@ import fr.arnaudguyon.nuage.database.NuageColumn;
 import fr.arnaudguyon.nuage.database.NuageDataBase;
 import fr.arnaudguyon.nuage.database.NuageRecord;
 import fr.arnaudguyon.nuage.database.NuageTable;
+import fr.arnaudguyon.nuage.model.ColumnType;
 import fr.arnaudguyon.nuage.sync.FileSyncProvider;
 import fr.arnaudguyon.nuage.sync.NuageSync;
 import fr.arnaudguyon.nuage.sync.SyncProvider;
@@ -36,9 +37,9 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "Table " + CLIENT_TABLE_NAME + " does not exist -> create it!");
             NuageTable clients = db.createTable(CLIENT_TABLE_NAME);
             if (clients != null) {
-                clients.addColumn("firstName", NuageColumn.Type.STRING);
-                clients.addColumn("lastName", NuageColumn.Type.STRING);
-                clients.addColumn("isCompany", NuageColumn.Type.BOOLEAN);
+                clients.addColumn("firstName", ColumnType.STRING);
+                clients.addColumn("lastName", ColumnType.STRING);
+                clients.addColumn("isCompany", ColumnType.BOOLEAN);
 
                 NuageRecord record = new NuageRecord()
                         .put("firstName", "Jean")
