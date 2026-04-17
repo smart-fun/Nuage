@@ -101,7 +101,7 @@ public class NuageTable {
             for (TableTransaction transaction : transactions) {
                 transaction.execute(db);
                 if (transaction instanceof TableTransaction.AddColumn transactionAddColumn) {
-                    tableSchema.addColumn(new ColumnModel(transactionAddColumn.getColumn().getName(), transactionAddColumn.getColumn().getType()));   // put type in cache
+                    tableSchema.addColumn(new ColumnModel(transactionAddColumn.getColumn().getName(), transactionAddColumn.getColumn().getType()));
                 }
             }
             db.setTransactionSuccessful();
@@ -125,23 +125,12 @@ public class NuageTable {
                 do {
                     String name = cursor.getString(nameIndex);
                     String typeStr = cursor.getString(typeIndex);
-
-                    // Map the SQL declared type back to our Enum
-                    ColumnType type;
-                    try {
-                        type = ColumnType.valueOf(typeStr);
-                    } catch (IllegalArgumentException e) {
-                        type = ColumnType.STRING; // Defaulting to STRING
-                    }
+                    ColumnType type = ColumnType.fromSqlType(typeStr);
                     tableSchema.addColumn(new ColumnModel(name, type));
                 } while (cursor.moveToNext());
             }
         }
     }
-
-//    public Map<String, NuageColumn.Type> getColumnTypes() {
-//        return Collections.unmodifiableMap(columnTypes);
-//    }
 
     public interface ApplyListener {
         void onApplied(boolean success, @Nullable Exception exception);
