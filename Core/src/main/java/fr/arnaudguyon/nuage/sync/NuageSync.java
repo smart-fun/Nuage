@@ -11,8 +11,10 @@ import java.util.Collection;
 
 import fr.arnaudguyon.nuage.database.NuageDataBase;
 import fr.arnaudguyon.nuage.database.NuageTable;
+import fr.arnaudguyon.nuage.json.DatabaseSerializer;
 import fr.arnaudguyon.nuage.json.JsonUtils;
 import fr.arnaudguyon.nuage.json.TableSerializer;
+import fr.arnaudguyon.nuage.model.DatabaseSchema;
 
 public class NuageSync {
 
@@ -70,6 +72,15 @@ public class NuageSync {
             } catch (Exception e) {
                 Log.e(TAG, "Error while saving " + table.getTableName() + " -> " + e.getMessage());
             }
+        }
+
+        DatabaseSchema dbSchema = dataBase.getSchema();
+        try {
+            JSONObject json = DatabaseSerializer.serialize(dbSchema);
+            byte[] bytes = JsonUtils.toBytes(json);
+            syncProvider.upload("nuage_schema.json", bytes);    // TODO: do not hardcode the file name here
+        } catch (Exception e) {
+            Log.e(TAG, "Error while saving database schema " + e.getMessage());
         }
     }
 

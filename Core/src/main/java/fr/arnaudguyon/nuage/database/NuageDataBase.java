@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.arnaudguyon.nuage.model.DatabaseSchema;
+
 public class NuageDataBase {
 
     private final @NonNull NuageSQLiteHelper helper;
@@ -49,6 +51,14 @@ public class NuageDataBase {
         } else {
             return null;
         }
+    }
+
+    public DatabaseSchema getSchema() {
+        DatabaseSchema dbSchema = new DatabaseSchema();
+        for (NuageTable table : tables.values()) {
+            dbSchema.addTable(table.getTableSchema());
+        }
+        return dbSchema;
     }
 
 }
