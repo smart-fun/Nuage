@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.arnaudguyon.nuage.json.SQLiteConst;
 import fr.arnaudguyon.nuage.model.ColumnModel;
 import fr.arnaudguyon.nuage.model.ColumnType;
 import fr.arnaudguyon.nuage.model.TableSchema;
@@ -42,7 +43,7 @@ public class NuageTable {
     }
 
     static boolean exists(@NonNull String tableName, @NonNull SQLiteDatabase db) {
-        String query = "SELECT name FROM sqlite_master WHERE type='table' AND name=?";
+        String query = "SELECT name FROM " + SQLiteConst.SCHEMA_TABLE_LIST + " WHERE type='table' AND name=?";
         try (Cursor cursor = db.rawQuery(query, new String[]{tableName})) {
             return (cursor.getCount() > 0);
         }
@@ -74,7 +75,11 @@ public class NuageTable {
 
             NuageColumn nuageCol = new NuageColumn(colModel);
             sb.append(nuageCol.getName()).append(" ").append(nuageCol.getSqlType());
-
+            if (colModel.isPrimaryKey()) {
+                sb.append(" PRIMARY KEY");
+            } else if (!colModel.isNullable()) {
+                sb.append(" NOT NULL");
+            }
             first = false;
         }
         sb.append(");");
@@ -84,8 +89,8 @@ public class NuageTable {
         return new NuageTable(schema, db);
     }
 
-    public void addColumn(@NonNull String columnName, @NonNull ColumnType type) {
-        transactions.add(new TableTransaction.AddColumn(getTableName(), columnName, type));
+    public void addColumn(@NonNull String columnName, @NonNull ColumnType type, boolean isNullable) {
+        transactions.add(new TableTransaction.AddColumn(getTableName(), columnName, type, isNullable));
     }
 
     public void addRecord(@NonNull NuageRecord record) {
@@ -126,7 +131,8 @@ public class NuageTable {
             for (TableTransaction transaction : transactions) {
                 transaction.execute(db);
                 if (transaction instanceof TableTransaction.AddColumn transactionAddColumn) {
-                    tableSchema.addColumn(new ColumnModel(transactionAddColumn.getColumn().getName(), transactionAddColumn.getColumn().getType()));
+                    NuageColumn column = transactionAddColumn.getColumn();
+                    tableSchema.addColumn(new ColumnModel(column.getName(), column.getType(), column.isPrimaryKey(), column.isNullable()));
                 }
             }
             db.setTransactionSuccessful();
@@ -145,13 +151,17 @@ public class NuageTable {
     private void initColumnTypes() {
         try (Cursor cursor = db.rawQuery("PRAGMA table_info(" + getTableName() + ")", null)) {
             if (cursor.moveToFirst()) {
-                int nameIndex = cursor.getColumnIndexOrThrow("name");
-                int typeIndex = cursor.getColumnIndexOrThrow("type");
+                int nameIndex = cursor.getColumnIndexOrThrow(SQLiteConst.INSPECT_COLUMN_NAME);
+                int typeIndex = cursor.getColumnIndexOrThrow(SQLiteConst.INSPECT_COLUMN_SQL_TYPE);
+                int pkIndex = cursor.getColumnIndexOrThrow(SQLiteConst.INSPECT_COLUMN_IS_PRIMARY_KEY);
+                int notNullIndex = cursor.getColumnIndexOrThrow(SQLiteConst.INSPECT_COLUMN_IS_NOT_NULL);
                 do {
                     String name = cursor.getString(nameIndex);
                     String typeStr = cursor.getString(typeIndex);
                     ColumnType type = ColumnType.fromSqlType(typeStr);
-                    tableSchema.addColumn(new ColumnModel(name, type));
+                    boolean isPrimaryKey = cursor.getInt(pkIndex) == 1;
+                    boolean isNullable = cursor.getInt(notNullIndex) == 0; // notnull=1 equals nullable=false
+                    tableSchema.addColumn(new ColumnModel(name, type, isPrimaryKey, isNullable));
                 } while (cursor.moveToNext());
             }
         }

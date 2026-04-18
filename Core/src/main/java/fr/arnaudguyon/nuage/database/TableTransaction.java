@@ -20,9 +20,9 @@ abstract class TableTransaction {
 
         private final @NonNull NuageColumn column;
 
-        AddColumn(@NonNull String tableName, @NonNull String columnName, @NonNull ColumnType columnType) {
+        AddColumn(@NonNull String tableName, @NonNull String columnName, @NonNull ColumnType columnType, boolean isNullable) {
             super(tableName);
-            this.column = new NuageColumn(columnName, columnType);
+            this.column = new NuageColumn(columnName, columnType, false, isNullable);   // cannot be a Primary Key as it is added at table creation, not afterwards
         }
 
         @Override

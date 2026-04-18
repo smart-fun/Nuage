@@ -14,8 +14,8 @@ public class NuageColumn {
         this.model = model;
     }
 
-    public NuageColumn(@NonNull String name, @NonNull ColumnType type) {
-        this(new ColumnModel(name, type));
+    public NuageColumn(@NonNull String name, @NonNull ColumnType type, boolean isPrimaryKey, boolean isNullable) {
+        this(new ColumnModel(name, type, isPrimaryKey, isNullable));
     }
 
     public @NonNull String getSqlType() {
@@ -36,6 +36,7 @@ public class NuageColumn {
         }
     }
 
+    // TODO: replace these methods with a unique getModel.
     public @NonNull String getName() {
         return model.getName();
     }
@@ -43,4 +44,13 @@ public class NuageColumn {
     public @NonNull ColumnType getType() {
         return model.getType();
     }
+
+    public boolean isPrimaryKey() {
+        return model.isPrimaryKey();
+    }
+
+    public boolean isNullable() {
+        return model.isNullable();
+    }
+
 }

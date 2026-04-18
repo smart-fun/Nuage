@@ -93,7 +93,7 @@ public class NuageSync {
             DatabaseSchema dbSchema2 = DatabaseSerializer.deserialize(new String(data));
             dataBase.importSchema(dbSchema2);
             Log.d(TAG, "test_db_schema.json imported");
-        } catch (IOException | JSONException e) {
+        } catch (IOException | JSONException | NullPointerException e) {
             Log.e(TAG, "Error while reading database schema: " + e.getMessage());
         }
     }

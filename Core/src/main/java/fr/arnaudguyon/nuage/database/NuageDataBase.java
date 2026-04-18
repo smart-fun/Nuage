@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.arnaudguyon.nuage.json.SQLiteConst;
 import fr.arnaudguyon.nuage.model.DatabaseSchema;
 import fr.arnaudguyon.nuage.model.TableSchema;
 
@@ -58,13 +59,15 @@ public class NuageDataBase {
 
     private void loadExistingTables() {
         SQLiteDatabase db = helper.getReadableDatabase();
-        String query = "SELECT name FROM sqlite_master WHERE type='table' " +
-                "AND name NOT LIKE 'android_%' " +
-                "AND name NOT LIKE 'sqlite_%'";
+        String query = "SELECT "+ SQLiteConst.SCHEMA_COLUMN_NAME +
+                " FROM " + SQLiteConst.SCHEMA_TABLE_LIST +
+                " WHERE " + SQLiteConst.SCHEMA_COLUMN_TYPE + "='table' " +
+                "AND " + SQLiteConst.SCHEMA_COLUMN_NAME + " NOT LIKE 'android_%' " +
+                "AND " + SQLiteConst.SCHEMA_COLUMN_NAME + " NOT LIKE 'sqlite_%'";
 
         try (android.database.Cursor cursor = db.rawQuery(query, null)) {
             if (cursor.moveToFirst()) {
-                int nameIndex = cursor.getColumnIndexOrThrow("name");
+                int nameIndex = cursor.getColumnIndexOrThrow(SQLiteConst.SCHEMA_COLUMN_NAME);
                 do {
                     String tableName = cursor.getString(nameIndex);
                     getTable(tableName);

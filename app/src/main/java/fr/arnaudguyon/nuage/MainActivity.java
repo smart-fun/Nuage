@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.List;
 
-import fr.arnaudguyon.nuage.database.NuageColumn;
 import fr.arnaudguyon.nuage.database.NuageDataBase;
 import fr.arnaudguyon.nuage.database.NuageRecord;
 import fr.arnaudguyon.nuage.database.NuageTable;
@@ -37,9 +36,9 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "Table " + CLIENT_TABLE_NAME + " does not exist -> create it!");
             NuageTable clients = db.createTable(CLIENT_TABLE_NAME);
             if (clients != null) {
-                clients.addColumn("firstName", ColumnType.STRING);
-                clients.addColumn("lastName", ColumnType.STRING);
-                clients.addColumn("isCompany", ColumnType.BOOLEAN);
+                clients.addColumn("firstName", ColumnType.STRING, true);
+                clients.addColumn("lastName", ColumnType.STRING, true);
+                clients.addColumn("isCompany", ColumnType.BOOLEAN, true);
 
                 NuageRecord record = new NuageRecord()
                         .put("firstName", "Jean")
