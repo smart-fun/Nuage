@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import androidx.annotation.NonNull;
 
+import fr.arnaudguyon.nuage.model.ColumnModel;
 import fr.arnaudguyon.nuage.model.ColumnType;
 
 abstract class TableTransaction {
@@ -27,7 +28,8 @@ abstract class TableTransaction {
 
         @Override
         public void execute(@NonNull SQLiteDatabase db) {
-            String sql = "ALTER TABLE " + tableName + " ADD COLUMN " + column.getName() + " " + column.getSqlType() + ";";
+            ColumnModel model = column.getModel();
+            String sql = "ALTER TABLE " + tableName + " ADD COLUMN " + model.getName() + " " + column.getSqlType() + ";";
             db.execSQL(sql);
         }
 

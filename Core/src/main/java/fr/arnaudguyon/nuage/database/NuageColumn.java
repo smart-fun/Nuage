@@ -36,21 +36,9 @@ public class NuageColumn {
         }
     }
 
-    // TODO: replace these methods with a unique getModel.
-    public @NonNull String getName() {
-        return model.getName();
-    }
-
-    public @NonNull ColumnType getType() {
-        return model.getType();
-    }
-
-    public boolean isPrimaryKey() {
-        return model.isPrimaryKey();
-    }
-
-    public boolean isNullable() {
-        return model.isNullable();
+    @NonNull
+    public ColumnModel getModel() {
+        return model;
     }
 
 }

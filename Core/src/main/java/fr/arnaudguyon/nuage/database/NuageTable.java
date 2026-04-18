@@ -74,7 +74,7 @@ public class NuageTable {
             if (!first) sb.append(", ");
 
             NuageColumn nuageCol = new NuageColumn(colModel);
-            sb.append(nuageCol.getName()).append(" ").append(nuageCol.getSqlType());
+            sb.append(colModel.getName()).append(" ").append(nuageCol.getSqlType());
             if (colModel.isPrimaryKey()) {
                 sb.append(" PRIMARY KEY");
             } else if (!colModel.isNullable()) {
@@ -131,8 +131,8 @@ public class NuageTable {
             for (TableTransaction transaction : transactions) {
                 transaction.execute(db);
                 if (transaction instanceof TableTransaction.AddColumn transactionAddColumn) {
-                    NuageColumn column = transactionAddColumn.getColumn();
-                    tableSchema.addColumn(new ColumnModel(column.getName(), column.getType(), column.isPrimaryKey(), column.isNullable()));
+                    ColumnModel model = transactionAddColumn.getColumn().getModel();
+                    tableSchema.addColumn(new ColumnModel(model.getName(), model.getType(), model.isPrimaryKey(), model.isNullable()));
                 }
             }
             db.setTransactionSuccessful();
