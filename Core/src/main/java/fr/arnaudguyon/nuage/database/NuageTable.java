@@ -26,6 +26,11 @@ public class NuageTable {
         initColumnTypes();
     }
 
+    NuageTable(@NonNull TableSchema schema, @NonNull SQLiteDatabase db) {
+        this.tableSchema = schema;
+        this.db = db;
+    }
+
     @NonNull
     public String getTableName() {
         return tableSchema.getTableName();
@@ -54,9 +59,29 @@ public class NuageTable {
         if (exists(tableName, db)) {
             return null;
         }
-        String sql = "CREATE TABLE " + tableName + " (" + NuageColumn.COLUMN_UUID + " TEXT PRIMARY KEY);";
+        String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (" + NuageColumn.COLUMN_UUID + " TEXT PRIMARY KEY);";
         db.execSQL(sql);
         return new NuageTable(tableName, db);
+    }
+
+    public static NuageTable createFromSchema(@NonNull TableSchema schema, @NonNull SQLiteDatabase db) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CREATE TABLE IF NOT EXISTS ").append(schema.getTableName()).append(" (");
+
+        boolean first = true;
+        for (ColumnModel colModel : schema.getColumns()) {
+            if (!first) sb.append(", ");
+
+            NuageColumn nuageCol = new NuageColumn(colModel);
+            sb.append(nuageCol.getName()).append(" ").append(nuageCol.getSqlType());
+
+            first = false;
+        }
+        sb.append(");");
+
+        db.execSQL(sb.toString());
+
+        return new NuageTable(schema, db);
     }
 
     public void addColumn(@NonNull String columnName, @NonNull ColumnType type) {

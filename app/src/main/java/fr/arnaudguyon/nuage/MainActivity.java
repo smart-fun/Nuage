@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        Log.d(TAG, "calling SyncProvider");
         SyncProvider provider = FileSyncProvider.create(this, "NuageApp", db.getDatabaseName());
         NuageSync nuageSync = NuageSync.create(db, provider, SyncStrategy.ON_DEMAND);
         nuageSync.start();

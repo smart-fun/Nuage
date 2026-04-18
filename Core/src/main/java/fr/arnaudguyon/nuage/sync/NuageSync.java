@@ -5,8 +5,10 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.Collection;
 
 import fr.arnaudguyon.nuage.database.NuageDataBase;
@@ -63,24 +65,36 @@ public class NuageSync {
     public void syncNow() {
         // get json files, database records, create new json files
         // request syncProvider to save the new files
-        Collection<NuageTable> tables = dataBase.getTables();
-        for(NuageTable table : tables) {
-            try {
-                JSONObject json = TableSerializer.serializeDefinition(table.getTableSchema());
-                byte[] bytes = JsonUtils.toBytes(json);
-                syncProvider.upload(table.getTableName(), bytes);
-            } catch (Exception e) {
-                Log.e(TAG, "Error while saving " + table.getTableName() + " -> " + e.getMessage());
-            }
-        }
+//        Collection<NuageTable> tables = dataBase.getTables();
+//        for(NuageTable table : tables) {
+//            try {
+//                JSONObject json = TableSerializer.serializeDefinition(table.getTableSchema());
+//                byte[] bytes = JsonUtils.toBytes(json);
+//                syncProvider.upload(table.getTableName(), bytes);
+//            } catch (Exception e) {
+//                Log.e(TAG, "Error while saving " + table.getTableName() + " -> " + e.getMessage());
+//            }
+//        }
 
+        // Save the DatabaseSchema (table definitions)
         DatabaseSchema dbSchema = dataBase.getSchema();
         try {
             JSONObject json = DatabaseSerializer.serialize(dbSchema);
             byte[] bytes = JsonUtils.toBytes(json);
             syncProvider.upload("nuage_schema.json", bytes);    // TODO: do not hardcode the file name here
+            Log.d(TAG, "nuage_schema.json exported");
         } catch (Exception e) {
             Log.e(TAG, "Error while saving database schema " + e.getMessage());
+        }
+
+        // Read another DatabaseSchema
+        try {
+            byte[] data = syncProvider.download("test_db_schema.json");
+            DatabaseSchema dbSchema2 = DatabaseSerializer.deserialize(new String(data));
+            dataBase.importSchema(dbSchema2);
+            Log.d(TAG, "test_db_schema.json imported");
+        } catch (IOException | JSONException e) {
+            Log.e(TAG, "Error while reading database schema: " + e.getMessage());
         }
     }
 

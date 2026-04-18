@@ -26,4 +26,20 @@ public class DatabaseSerializer {
 
         return json;
     }
+
+    public static DatabaseSchema deserialize(@NonNull String jsonString) throws JSONException {
+        JSONObject json = new JSONObject(jsonString);
+        DatabaseSchema dbSchema = new DatabaseSchema();
+
+        dbSchema.setLastUpdateTimestamp(json.optLong("timestamp", System.currentTimeMillis()));
+
+        JSONArray tablesArray = json.optJSONArray("tables");
+        if (tablesArray != null) {
+            for (int i = 0; i < tablesArray.length(); i++) {
+                JSONObject tableJson = tablesArray.getJSONObject(i);
+                dbSchema.addTable(TableSerializer.deserializeTableDefinition(tableJson));
+            }
+        }
+        return dbSchema;
+    }
 }

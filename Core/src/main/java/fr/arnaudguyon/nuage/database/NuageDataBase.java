@@ -1,6 +1,7 @@
 package fr.arnaudguyon.nuage.database;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.arnaudguyon.nuage.model.DatabaseSchema;
+import fr.arnaudguyon.nuage.model.TableSchema;
 
 public class NuageDataBase {
 
@@ -19,6 +21,7 @@ public class NuageDataBase {
 
     public NuageDataBase(@NonNull Context context, @NonNull String baseName, int version) {
         helper = new NuageSQLiteHelper(context, baseName, version);
+        loadExistingTables();
     }
 
     public @NonNull String getDatabaseName() {
@@ -50,6 +53,34 @@ public class NuageDataBase {
             return NuageTable.create(tableName, helper.getWritableDatabase());
         } else {
             return null;
+        }
+    }
+
+    private void loadExistingTables() {
+        SQLiteDatabase db = helper.getReadableDatabase();
+        String query = "SELECT name FROM sqlite_master WHERE type='table' " +
+                "AND name NOT LIKE 'android_%' " +
+                "AND name NOT LIKE 'sqlite_%'";
+
+        try (android.database.Cursor cursor = db.rawQuery(query, null)) {
+            if (cursor.moveToFirst()) {
+                int nameIndex = cursor.getColumnIndexOrThrow("name");
+                do {
+                    String tableName = cursor.getString(nameIndex);
+                    getTable(tableName);
+                } while (cursor.moveToNext());
+            }
+        }
+    }
+
+    public void importSchema(@NonNull DatabaseSchema dbSchema) {
+        SQLiteDatabase db = helper.getWritableDatabase();
+        for (TableSchema tableSchema : dbSchema.getTables()) {
+            String tableName = tableSchema.getTableName();
+            if (!tables.containsKey(tableName) && !tableExists(tableName)) {
+                NuageTable table = NuageTable.createFromSchema(tableSchema, db);
+                tables.put(tableSchema.getTableName(), table);
+            }
         }
     }
 

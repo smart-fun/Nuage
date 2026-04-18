@@ -52,6 +52,22 @@ public class FileSyncProvider implements SyncProvider.Internal {
 
     @Override
     public @Nullable byte[] download(@NonNull String relativePath) throws IOException {
-        return new byte[0];
+        File targetFile = new File(baseFolder, relativePath);
+
+        if (!targetFile.exists()) {
+            return null;
+        }
+
+        int size = (int) targetFile.length();
+        byte[] data = new byte[size];
+
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(targetFile)) {
+            int bytesRead = fis.read(data);
+            if (bytesRead != size) {
+                throw new IOException("Could not read the entire file: " + relativePath);
+            }
+        }
+
+        return data;
     }
 }

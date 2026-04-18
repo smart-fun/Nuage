@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import fr.arnaudguyon.nuage.model.ColumnModel;
+import fr.arnaudguyon.nuage.model.ColumnType;
 import fr.arnaudguyon.nuage.model.TableSchema;
 
 public abstract class TableSerializer {
@@ -27,6 +28,32 @@ public abstract class TableSerializer {
 
         json.put("columns", columnsArray);
         return json;
+    }
+
+
+    public static TableSchema deserializeTableDefinition(JSONObject json) throws JSONException {
+        String tableName = json.getString("table_name");
+        TableSchema tableSchema = new TableSchema(tableName);
+
+        JSONArray columnsArray = json.optJSONArray("columns");
+        if (columnsArray != null) {
+            for (int i = 0; i < columnsArray.length(); i++) {
+                JSONObject colJson = columnsArray.getJSONObject(i);
+                String name = colJson.getString("name");
+                String typeStr = colJson.getString("type");
+
+                // Sécurité : si le type dans le JSON n'existe pas dans l'Enum, on met STRING par défaut
+                ColumnType type;
+                try {
+                    type = ColumnType.valueOf(typeStr);
+                } catch (IllegalArgumentException e) {
+                    type = ColumnType.STRING;
+                }
+
+                tableSchema.addColumn(new ColumnModel(name, type));
+            }
+        }
+        return tableSchema;
     }
 
 }
